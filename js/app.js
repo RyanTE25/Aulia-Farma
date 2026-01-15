@@ -1,11 +1,9 @@
-alert("SCRIPT JS KELOAD");
-
 import { createClient } from
 "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
 const supabase = createClient(
   "https://pjlxqdlbvtzgijjnwcql.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqbHhxZGxidnR6Z2lqam53Y3FsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0NDMzNzgsImV4cCI6MjA4NDAxOTM3OH0.6htasW1ob6fxFPNQtZjr7It9ztbOkjNE0sDpAaSBmuw"
+  "ANON_PUBLIC_KEY_KAMU"
 );
 
 async function loadObat() {
@@ -38,7 +36,7 @@ async function loadObat() {
   });
 }
 
-async function tambahStok(id) {
+window.tambahStok = async function(id) {
   const { data, error } = await supabase
     .from("obat")
     .select("stok")
@@ -53,9 +51,9 @@ async function tambahStok(id) {
     .eq("id", id);
 
   loadObat();
-}
+};
 
-async function kurangStok(id, stok) {
+window.kurangStok = async function(id, stok) {
   if (stok <= 0) return alert("Stok habis");
 
   await supabase
@@ -64,7 +62,10 @@ async function kurangStok(id, stok) {
     .eq("id", id);
 
   loadObat();
-}
+};
+
+loadObat();
+
 
 
 
