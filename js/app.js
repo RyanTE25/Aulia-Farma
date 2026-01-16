@@ -6,17 +6,25 @@ const supabase = createClient(
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqbHhxZGxidnR6Z2lqam53Y3FsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0NDMzNzgsImV4cCI6MjA4NDAxOTM3OH0.6htasW1ob6fxFPNQtZjr7It9ztbOkjNE0sDpAaSBmuw"
 );
 
-// 🔐 CEK LOGIN DENGAN SESSION
+let currentPage = 1;
+const perPage = 10;
+
+// 🔐 CEK LOGIN + ROLE
 async function cekLogin() {
   const { data: { session } } = await supabase.auth.getSession();
+
   if (!session) {
     window.location.href = "login.html";
     return;
   }
 
-  const role = session.user.role;
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", session.user.id)
+    .single();
 
-  if (role !== "admin") {
+  if (profile.role !== "admin") {
     document.querySelector(".admin-only")?.remove();
   }
 }
@@ -24,16 +32,20 @@ async function cekLogin() {
 await cekLogin();
 
 async function loadObat(keyword = "") {
+  const from = (currentPage - 1) * perPage;
+  const to = from + perPage - 1;
+
   let query = supabase
     .from("obat")
-    .select("*")
-    .order("nama_barang");
+    .select("*", { count: "exact" })
+    .order("nama_barang")
+    .range(from, to);
 
   if (keyword) {
     query = query.ilike("nama_barang", `%${keyword}%`);
   }
 
-  const { data, error } = await query;
+  const { data, count, error } = await query;
   if (error) return console.error(error);
 
   const tbody = document.getElementById("hasil");
@@ -47,33 +59,37 @@ async function loadObat(keyword = "") {
         <td>Rp ${Number(o.harga_jual).toLocaleString("id-ID")}</td>
         <td>${o.stok}</td>
         <td>
+          <input type="number" id="qty-${o.id}" value="1" min="1" style="width:60px">
           <button onclick="tambahStok(${o.id})">+</button>
-          <button onclick="kurangStok(${o.id}, ${o.stok})">−</button>
-          <button onclick="editHarga(${o.id}, ${o.harga_jual})">...</button>
+          <button onclick="kurangStok(${o.id})">−</button>
+          <button onclick="editHarga(${o.id}, ${o.harga_jual})">💰</button>
         </td>
       </tr>
     `;
   });
+
+  renderPagination(count);
 }
 
-async function tambahObat() {
-  const nama = document.getElementById("nama").value;
-  const satuan = document.getElementById("satuan").value;
-  const harga = document.getElementById("harga").value;
+function renderPagination(total) {
+  const totalPage = Math.ceil(total / perPage);
+  document.getElementById("pageInfo").innerText =
+    `Page ${currentPage} / ${totalPage}`;
+}
 
-  if (!nama || !harga) return alert("Nama & harga wajib");
-
-  await supabase.from("obat").insert({
-    nama_barang: nama,
-    satuan,
-    harga_jual: harga,
-    stok: 0
-  });
-
+window.nextPage = () => {
+  currentPage++;
   loadObat();
-}
+};
 
-async function editHarga(id, hargaLama) {
+window.prevPage = () => {
+  if (currentPage > 1) {
+    currentPage--;
+    loadObat();
+  }
+};
+
+window.editHarga = async (id, hargaLama) => {
   const hargaBaru = prompt("Harga baru:", hargaLama);
   if (!hargaBaru) return;
 
@@ -83,9 +99,12 @@ async function editHarga(id, hargaLama) {
     .eq("id", id);
 
   loadObat();
-}
+};
 
-window.tambahStok = async (id) => {
+window.tambahStok = async id => {
+  const qty = Number(document.getElementById(`qty-${id}`).value);
+  if (qty <= 0) return;
+
   const { data } = await supabase
     .from("obat")
     .select("stok")
@@ -94,24 +113,33 @@ window.tambahStok = async (id) => {
 
   await supabase
     .from("obat")
-    .update({ stok: data.stok + 1 })
+    .update({ stok: data.stok + qty })
     .eq("id", id);
 
   loadObat();
 };
 
-window.kurangStok = async (id, stok) => {
-  if (stok <= 0) return alert("Stok habis");
+window.kurangStok = async id => {
+  const qty = Number(document.getElementById(`qty-${id}`).value);
+  if (qty <= 0) return;
+
+  const { data } = await supabase
+    .from("obat")
+    .select("stok")
+    .eq("id", id)
+    .single();
+
+  if (data.stok < qty) return alert("Stok tidak cukup");
 
   await supabase
     .from("obat")
-    .update({ stok: stok - 1 })
+    .update({ stok: data.stok - qty })
     .eq("id", id);
 
   loadObat();
 };
 
-window.logout = async function () {
+window.logout = async () => {
   await supabase.auth.signOut();
   window.location.href = "login.html";
 };
@@ -119,8 +147,8 @@ window.logout = async function () {
 window.loadObat = loadObat;
 window.tambahObat = tambahObat;
 
-cekLogin();
 loadObat();
+
 
 
 
