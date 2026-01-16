@@ -4,24 +4,28 @@
 }
 
 body {
-  background: #f4f7fb;
+  font-family: Arial, sans-serif;
+  background: #f4f6f8;
   margin: 0;
-  padding: 40px;
 }
 
 .container {
-  max-width: 1000px;
-  margin: auto;
-  background: white;
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  width: 90%;
+  margin: 40px auto;
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
 }
 
 h1 {
-  text-align: center;
-  margin-bottom: 30px;
-  color: #2c3e50;
+  margin-bottom: 20px;
+}
+
+.search {
+  width: 90%;
+  margin: 20px auto;
+  display: block;
+  padding: 10px;
 }
 
 table {
@@ -29,43 +33,33 @@ table {
   border-collapse: collapse;
 }
 
-thead {
-  background: #2ecc71;
+th {
+  background: #0d6efd;
   color: white;
+  padding: 10px;
 }
 
-th, td {
-  padding: 12px 14px;
+td {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
   text-align: center;
 }
 
-tbody tr {
-  border-bottom: 1px solid #eee;
-}
-
-tbody tr:hover {
-  background: #f1f9f4;
+td.nama {
+  text-align: left; /* ⬅️ INI */
 }
 
 button {
-  padding: 6px 12px;
-  margin: 0 4px;
-  border: none;
-  border-radius: 6px;
+  padding: 5px 10px;
+  margin: 2px;
   cursor: pointer;
-  font-size: 14px;
 }
 
-button:first-child {
-  background: #27ae60;
+.logout {
+  position: absolute;
+  right: 20px;
+  top: 20px;
+  background: crimson;
   color: white;
 }
 
-button:last-child {
-  background: #e74c3c;
-  color: white;
-}
-
-button:hover {
-  opacity: 0.85;
-}
