@@ -62,7 +62,7 @@ async function loadObat(keyword = "") {
           <input type="number" id="qty-${o.id}" value="1" min="1" style="width:60px">
           <button onclick="tambahStok(${o.id})">+</button>
           <button onclick="kurangStok(${o.id})">−</button>
-          <button onclick="editHarga(${o.id}, ${o.harga_jual})">💰</button>
+          <button onclick="editHarga(${o.id}, ${o.harga_jual})">...</button>
         </td>
       </tr>
     `;
