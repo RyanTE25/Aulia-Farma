@@ -6,10 +6,16 @@ const supabase = createClient(
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqbHhxZGxidnR6Z2lqam53Y3FsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0NDMzNzgsImV4cCI6MjA4NDAxOTM3OH0.6htasW1ob6fxFPNQtZjr7It9ztbOkjNE0sDpAaSBmuw"
 );
 
+// 🔐 CEK LOGIN DENGAN SESSION
 async function cekLogin() {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) window.location.href = "login.html";
+  const { data: { session } } = await supabase.auth.getSession();
+
+  if (!session) {
+    window.location.href = "login.html";
+  }
 }
+
+await cekLogin();
 
 async function loadObat(keyword = "") {
   let query = supabase
@@ -104,6 +110,7 @@ window.tambahObat = tambahObat;
 
 cekLogin();
 loadObat();
+
 
 
 
