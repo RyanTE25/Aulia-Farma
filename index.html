@@ -8,7 +8,11 @@
 </head>
 <body>
 
-<button class="logout" onclick="logout()">Logout</button>
+<!-- HEADER -->
+<div class="header">
+  <h2>Apotek Aulia Farma</h2>
+  <button class="logout" onclick="logout()">Logout</button>
+</div>
 
 <input
   type="text"
@@ -19,7 +23,7 @@
 />
 
 <div class="container">
-  <h1>Data Obat Apotek Aulia Farma</h1>
+  <h1>Data Obat</h1>
 
   <table>
     <thead>
@@ -35,19 +39,20 @@
   </table>
 </div>
 
+<div class="pagination">
+  <button onclick="prevPage()">Prev</button>
+  <span id="pageInfo"></span>
+  <button onclick="nextPage()">Next</button>
+</div>
+
 <!-- KHUSUS ADMIN -->
 <div class="container admin-only">
   <h3>Tambah Obat</h3>
   <input id="nama" placeholder="Nama obat">
   <input id="satuan" placeholder="Satuan">
   <input id="harga" type="number" placeholder="Harga">
+  <button onclick="tambahObat()">Tambah</button>
 </div>
-
-<h3>Tambah Obat</h3>
-<input id="nama" placeholder="Nama obat">
-<input id="satuan" placeholder="Satuan">
-<input id="harga" type="number" placeholder="Harga">
-<button onclick="tambahObat()">Tambah</button>
 
 <script type="module" src="js/app.js"></script>
 </body>
