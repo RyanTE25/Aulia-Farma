@@ -3,7 +3,7 @@ import { createClient } from
 
 const supabase = createClient(
   "https://pjlxqdlbvtzgijjnwcql.supabase.co",
-  "ANON_PUBLIC_KEY_KAMU"
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqbHhxZGxidnR6Z2lqam53Y3FsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0NDMzNzgsImV4cCI6MjA4NDAxOTM3OH0.6htasW1ob6fxFPNQtZjr7It9ztbOkjNE0sDpAaSBmuw"
 );
 
 async function loadObat() {
