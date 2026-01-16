@@ -9,9 +9,15 @@ const supabase = createClient(
 // 🔐 CEK LOGIN DENGAN SESSION
 async function cekLogin() {
   const { data: { session } } = await supabase.auth.getSession();
-
   if (!session) {
     window.location.href = "login.html";
+    return;
+  }
+
+  const role = session.user.role;
+
+  if (role !== "admin") {
+    document.querySelector(".admin-only")?.remove();
   }
 }
 
@@ -36,14 +42,14 @@ async function loadObat(keyword = "") {
   data.forEach(o => {
     tbody.innerHTML += `
       <tr>
-        <td>${o.nama_barang}</td>
+        <td class="nama">${o.nama_barang}</td>
         <td>${o.satuan}</td>
         <td>Rp ${Number(o.harga_jual).toLocaleString("id-ID")}</td>
         <td>${o.stok}</td>
         <td>
           <button onclick="tambahStok(${o.id})">+</button>
           <button onclick="kurangStok(${o.id}, ${o.stok})">−</button>
-          <button onclick="editHarga(${o.id}, ${o.harga_jual})">💰</button>
+          <button onclick="editHarga(${o.id}, ${o.harga_jual})">...</button>
         </td>
       </tr>
     `;
@@ -105,11 +111,17 @@ window.kurangStok = async (id, stok) => {
   loadObat();
 };
 
+window.logout = async function () {
+  await supabase.auth.signOut();
+  window.location.href = "login.html";
+};
+
 window.loadObat = loadObat;
 window.tambahObat = tambahObat;
 
 cekLogin();
 loadObat();
+
 
 
 
