@@ -1,15 +1,23 @@
 import { createClient } from
 "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
+/* =========================
+   SUPABASE CONFIG
+========================= */
 const supabase = createClient(
   "https://pjlxqdlbvtzgijjnwcql.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqbHhxZGxidnR6Z2lqam53Y3FsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0NDMzNzgsImV4cCI6MjA4NDAxOTM3OH0.6htasW1ob6fxFPNQtZjr7It9ztbOkjNE0sDpAaSBmuw"
+  "YOUR_ANON_KEY"
 );
 
+/* =========================
+   PAGINATION
+========================= */
 let currentPage = 1;
 const perPage = 10;
 
-// 🔐 CEK LOGIN + ROLE
+/* =========================
+   AUTH + ROLE
+========================= */
 async function cekLogin() {
   const { data: { session } } = await supabase.auth.getSession();
 
@@ -18,19 +26,25 @@ async function cekLogin() {
     return;
   }
 
-  const { data: profile } = await supabase
+  const { data: profile, error } = await supabase
     .from("profiles")
     .select("role")
     .eq("id", session.user.id)
     .single();
+
+  if (error) {
+    console.error(error);
+    return;
+  }
 
   if (profile.role !== "admin") {
     document.querySelector(".admin-only")?.remove();
   }
 }
 
-await cekLogin();
-
+/* =========================
+   LOAD DATA OBAT
+========================= */
 async function loadObat(keyword = "") {
   const from = (currentPage - 1) * perPage;
   const to = from + perPage - 1;
@@ -46,61 +60,81 @@ async function loadObat(keyword = "") {
   }
 
   const { data, count, error } = await query;
-  if (error) return console.error(error);
+
+  if (error) {
+    console.error("Load error:", error);
+    return;
+  }
 
   const tbody = document.getElementById("hasil");
   tbody.innerHTML = "";
+
+  if (!data || data.length === 0) {
+    tbody.innerHTML =
+      `<tr><td colspan="5">Data kosong</td></tr>`;
+    renderPagination(0);
+    return;
+  }
 
   data.forEach(o => {
     tbody.innerHTML += `
       <tr>
         <td class="nama">${o.nama_barang}</td>
-        <td>${o.satuan}</td>
+        <td>${o.satuan || "-"}</td>
         <td>Rp ${Number(o.harga_jual).toLocaleString("id-ID")}</td>
         <td>${o.stok}</td>
         <td>
           <input type="number" id="qty-${o.id}" value="1" min="1" style="width:60px">
           <button onclick="tambahStok(${o.id})">+</button>
           <button onclick="kurangStok(${o.id})">−</button>
-          <button onclick="editHarga(${o.id}, ${o.harga_jual})">...</button>
+          <button onclick="editHarga(${o.id}, ${o.harga_jual})">Edit</button>
         </td>
       </tr>
     `;
   });
 
-  renderPagination(count);
+  renderPagination(count || 0);
 }
 
+/* =========================
+   PAGINATION UI
+========================= */
 function renderPagination(total) {
-  const totalPage = Math.ceil(total / perPage);
+  const totalPage = Math.max(1, Math.ceil(total / perPage));
   document.getElementById("pageInfo").innerText =
     `Page ${currentPage} / ${totalPage}`;
 }
 
 window.nextPage = () => {
   currentPage++;
-  loadObat();
+  loadObat(document.getElementById("search")?.value || "");
 };
 
 window.prevPage = () => {
   if (currentPage > 1) {
     currentPage--;
-    loadObat();
+    loadObat(document.getElementById("search")?.value || "");
   }
 };
 
+/* =========================
+   EDIT HARGA
+========================= */
 window.editHarga = async (id, hargaLama) => {
-  const hargaBaru = prompt("Harga baru:", hargaLama);
+  const hargaBaru = prompt("Masukkan harga baru:", hargaLama);
   if (!hargaBaru) return;
 
   await supabase
     .from("obat")
-    .update({ harga_jual: hargaBaru })
+    .update({ harga_jual: Number(hargaBaru) })
     .eq("id", id);
 
   loadObat();
 };
 
+/* =========================
+   TAMBAH / KURANG STOK
+========================= */
 window.tambahStok = async id => {
   const qty = Number(document.getElementById(`qty-${id}`).value);
   if (qty <= 0) return;
@@ -129,7 +163,10 @@ window.kurangStok = async id => {
     .eq("id", id)
     .single();
 
-  if (data.stok < qty) return alert("Stok tidak cukup");
+  if (data.stok < qty) {
+    alert("Stok tidak cukup");
+    return;
+  }
 
   await supabase
     .from("obat")
@@ -139,21 +176,21 @@ window.kurangStok = async id => {
   loadObat();
 };
 
+/* =========================
+   LOGOUT
+========================= */
 window.logout = async () => {
   await supabase.auth.signOut();
   window.location.href = "login.html";
 };
 
+/* =========================
+   GLOBAL
+========================= */
 window.loadObat = loadObat;
-window.tambahObat = tambahObat;
 
+/* =========================
+   INIT
+========================= */
+cekLogin();
 loadObat();
-
-
-
-
-
-
-
-
-
