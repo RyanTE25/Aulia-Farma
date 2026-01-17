@@ -1,23 +1,20 @@
 import { createClient } from
 "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
-/* =========================
-   SUPABASE CONFIG
-========================= */
 const supabase = createClient(
   "https://pjlxqdlbvtzgijjnwcql.supabase.co",
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqbHhxZGxidnR6Z2lqam53Y3FsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0NDMzNzgsImV4cCI6MjA4NDAxOTM3OH0.6htasW1ob6fxFPNQtZjr7It9ztbOkjNE0sDpAaSBmuw"
 );
 
-/* =========================
-   PAGINATION
-========================= */
+// =======================
+// PAGINATION
+// =======================
 let currentPage = 1;
 const perPage = 10;
 
-/* =========================
-   AUTH + ROLE
-========================= */
+// =======================
+// CEK LOGIN + ROLE
+// =======================
 async function cekLogin() {
   const { data: { session } } = await supabase.auth.getSession();
 
@@ -33,7 +30,7 @@ async function cekLogin() {
     .single();
 
   if (error) {
-    console.error(error);
+    console.error("Profile error:", error);
     return;
   }
 
@@ -42,9 +39,11 @@ async function cekLogin() {
   }
 }
 
-/* =========================
-   LOAD DATA OBAT
-========================= */
+await cekLogin();
+
+// =======================
+// LOAD DATA OBAT
+// =======================
 async function loadObat(keyword = "") {
   const from = (currentPage - 1) * perPage;
   const to = from + perPage - 1;
@@ -52,7 +51,7 @@ async function loadObat(keyword = "") {
   let query = supabase
     .from("obat")
     .select("*", { count: "exact" })
-    .order("nama_barang")
+    .order("nama_barang", { ascending: true })
     .range(from, to);
 
   if (keyword) {
@@ -87,18 +86,18 @@ async function loadObat(keyword = "") {
           <input type="number" id="qty-${o.id}" value="1" min="1" style="width:60px">
           <button onclick="tambahStok(${o.id})">+</button>
           <button onclick="kurangStok(${o.id})">−</button>
-          <button onclick="editHarga(${o.id}, ${o.harga_jual})">Edit</button>
+          <button onclick="editHarga(${o.id}, ${o.harga_jual})">💰</button>
         </td>
       </tr>
     `;
   });
 
-  renderPagination(count || 0);
+  renderPagination(count);
 }
 
-/* =========================
-   PAGINATION UI
-========================= */
+// =======================
+// PAGINATION UI
+// =======================
 function renderPagination(total) {
   const totalPage = Math.max(1, Math.ceil(total / perPage));
   document.getElementById("pageInfo").innerText =
@@ -107,34 +106,77 @@ function renderPagination(total) {
 
 window.nextPage = () => {
   currentPage++;
-  loadObat(document.getElementById("search")?.value || "");
+  loadObat();
 };
 
 window.prevPage = () => {
   if (currentPage > 1) {
     currentPage--;
-    loadObat(document.getElementById("search")?.value || "");
+    loadObat();
   }
 };
 
-/* =========================
-   EDIT HARGA
-========================= */
+// =======================
+// TAMBAH OBAT (ADMIN)
+// =======================
+async function tambahObat() {
+  const nama = document.getElementById("nama").value.trim();
+  const satuan = document.getElementById("satuan").value.trim();
+  const harga = Number(document.getElementById("harga").value);
+  const stok = Number(document.getElementById("stok").value);
+
+  if (!nama || !harga) {
+    alert("Nama & harga wajib diisi");
+    return;
+  }
+
+  const { error } = await supabase
+    .from("obat")
+    .insert({
+      nama_barang: nama,
+      satuan: satuan || null,
+      harga_jual: harga,
+      stok: stok || 0
+    });
+
+  if (error) {
+    console.error(error);
+    alert("Gagal tambah obat: " + error.message);
+    return;
+  }
+
+  document.getElementById("nama").value = "";
+  document.getElementById("satuan").value = "";
+  document.getElementById("harga").value = "";
+  document.getElementById("stok").value = 0;
+
+  loadObat();
+  alert("Obat berhasil ditambahkan");
+}
+
+// =======================
+// EDIT HARGA
+// =======================
 window.editHarga = async (id, hargaLama) => {
-  const hargaBaru = prompt("Masukkan harga baru:", hargaLama);
+  const hargaBaru = prompt("Harga baru:", hargaLama);
   if (!hargaBaru) return;
 
-  await supabase
+  const { error } = await supabase
     .from("obat")
     .update({ harga_jual: Number(hargaBaru) })
     .eq("id", id);
 
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
   loadObat();
 };
 
-/* =========================
-   TAMBAH / KURANG STOK
-========================= */
+// =======================
+// TAMBAH / KURANG STOK
+// =======================
 window.tambahStok = async id => {
   const qty = Number(document.getElementById(`qty-${id}`).value);
   if (qty <= 0) return;
@@ -176,21 +218,17 @@ window.kurangStok = async id => {
   loadObat();
 };
 
-/* =========================
-   LOGOUT
-========================= */
+// =======================
+// LOGOUT
+// =======================
 window.logout = async () => {
   await supabase.auth.signOut();
   window.location.href = "login.html";
 };
 
-/* =========================
-   GLOBAL
-========================= */
+// expose ke HTML
 window.loadObat = loadObat;
+window.tambahObat = tambahObat;
 
-/* =========================
-   INIT
-========================= */
-cekLogin();
+// INIT
 loadObat();
