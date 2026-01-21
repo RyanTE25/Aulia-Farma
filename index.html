@@ -1,41 +1,65 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
   <meta charset="UTF-8">
   <title>Data Obat</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
+<div class="layout">
 
-<button class="logout" onclick="logout()">Logout</button>
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <h2>Apotek</h2>
+    <a href="index.html" class="active">💊 <span>Data Obat</span></a>
+    <a href="kasir.html">🧾 <span>Sistem Kasir</span></a>
+    <a href="#" onclick="logout()">🚪 <span>Logout</span></a>
+  </div>
 
-<input class="search" placeholder="Cari obat..." oninput="loadObat(this.value)">
+  <!-- MAIN -->
+  <div class="main">
 
-<div class="container">
-  <h1>Data Obat</h1>
-  <table>
-    <thead>
-      <tr>
-        <th>Nama</th><th>Satuan</th><th>Harga</th><th>Stok</th><th>Aksi</th>
-      </tr>
-    </thead>
-    <tbody id="hasil"></tbody>
-  </table>
-</div>
+    <input
+      class="search"
+      placeholder="Cari obat..."
+      oninput="loadObat(this.value)"
+    >
 
-<div class="pagination">
-  <button onclick="prevPage()">Prev</button>
-  <span id="pageInfo"></span>
-  <button onclick="nextPage()">Next</button>
-</div>
+    <div class="container">
+      <h1>Data Obat</h1>
 
-<div class="container admin-only">
-  <h3>Tambah Obat</h3>
-  <input id="namaInput" placeholder="Nama">
-  <input id="satuanInput" placeholder="Satuan">
-  <input id="hargaInput" type="number" placeholder="Harga">
-  <input id="stokInput" type="number" placeholder="Stok">
-  <button onclick="tambahObat()">Tambah</button>
+      <table>
+        <thead>
+          <tr>
+            <th>Nama</th>
+            <th>Satuan</th>
+            <th>Harga</th>
+            <th>Stok</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="hasil"></tbody>
+      </table>
+    </div>
+
+    <div class="pagination">
+      <button onclick="prevPage()">Prev</button>
+      <span id="pageInfo"></span>
+      <button onclick="nextPage()">Next</button>
+    </div>
+
+    <!-- ADMIN ONLY -->
+    <div class="container admin-only">
+      <h3>Tambah Obat</h3>
+      <input id="namaInput" placeholder="Nama">
+      <input id="satuanInput" placeholder="Satuan">
+      <input id="hargaInput" type="number" placeholder="Harga">
+      <input id="stokInput" type="number" placeholder="Stok">
+      <button onclick="tambahObat()">Tambah</button>
+    </div>
+
+  </div>
 </div>
 
 <script type="module" src="js/app.js"></script>
