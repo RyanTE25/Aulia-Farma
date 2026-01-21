@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Sistem Kasir</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="header">
+  <h2>Kasir Apotek Aulia Farma</h2>
+  <button onclick="logout()" class="logout">Logout</button>
+</div>
+
+<div class="container">
+  <h3>Input Barang</h3>
+
+  <input id="kode" placeholder="ID Obat">
+  <input id="qty" type="number" placeholder="Qty" value="1">
+  <button onclick="tambahItem()">Tambah</button>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Nama</th>
+        <th>Harga</th>
+        <th>Qty</th>
+        <th>Jumlah</th>
+      </tr>
+    </thead>
+    <tbody id="cart"></tbody>
+  </table>
+
+  <h3>Total Item: <span id="totalItem">0</span></h3>
+  <h3>Total Harga: Rp <span id="totalHarga">0</span></h3>
+
+  <button onclick="simpanTransaksi()">Simpan & Cetak</button>
+</div>
+
+<script type="module" src="js/kasir.js"></script>
+</body>
+</html>
