@@ -2,37 +2,21 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Apotek Online</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data Obat</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-<!-- HEADER -->
-<div class="header">
-  <h2>Apotek Aulia Farma</h2>
-  <button class="logout" onclick="logout()">Logout</button>
-</div>
+<button class="logout" onclick="logout()">Logout</button>
 
-<input
-  type="text"
-  id="search"
-  placeholder="Cari nama obat..."
-  oninput="loadObat(this.value)"
-  class="search"
-/>
+<input class="search" placeholder="Cari obat..." oninput="loadObat(this.value)">
 
 <div class="container">
   <h1>Data Obat</h1>
-
   <table>
     <thead>
       <tr>
-        <th>Nama</th>
-        <th>Satuan</th>
-        <th>Harga</th>
-        <th>Stok</th>
-        <th>Aksi</th>
+        <th>Nama</th><th>Satuan</th><th>Harga</th><th>Stok</th><th>Aksi</th>
       </tr>
     </thead>
     <tbody id="hasil"></tbody>
@@ -45,13 +29,12 @@
   <button onclick="nextPage()">Next</button>
 </div>
 
-<!-- KHUSUS ADMIN -->
 <div class="container admin-only">
   <h3>Tambah Obat</h3>
-  <input id="nama" placeholder="Nama obat">
-  <input id="satuan" placeholder="Satuan">
-  <input id="harga" type="number" placeholder="Harga">
-  <input id="stok" type="number" placeholder="Stok awal" value="0">
+  <input id="namaInput" placeholder="Nama">
+  <input id="satuanInput" placeholder="Satuan">
+  <input id="hargaInput" type="number" placeholder="Harga">
+  <input id="stokInput" type="number" placeholder="Stok">
   <button onclick="tambahObat()">Tambah</button>
 </div>
 
