@@ -1,10 +1,13 @@
-import { createClient } from
-"https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+import { supabase } from "./supabase.js";
+import { getRole, logout } from "./auth.js";
 
-const supabase = createClient(
-  "https://pjlxqdlbvtzgijjnwcql.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqbHhxZGxidnR6Z2lqam53Y3FsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg0NDMzNzgsImV4cCI6MjA4NDAxOTM3OH0.6htasW1ob6fxFPNQtZjr7It9ztbOkjNE0sDpAaSBmuw"
-);
+// =======================
+// ROLE CHECK
+// =======================
+const role = await getRole();
+if (role !== "admin") {
+  document.querySelector(".admin-only")?.remove();
+}
 
 // =======================
 // PAGINATION
@@ -12,37 +15,20 @@ const supabase = createClient(
 let currentPage = 1;
 const perPage = 10;
 
-// =======================
-// CEK LOGIN + ROLE
-// =======================
-async function cekLogin() {
-  const { data: { session } } = await supabase.auth.getSession();
-
-  if (!session) {
-    window.location.href = "login.html";
-    return;
+window.prevPage = () => {
+  if (currentPage > 1) {
+    currentPage--;
+    loadObat();
   }
+};
 
-  const { data: profile, error } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", session.user.id)
-    .single();
-
-  if (error) {
-    console.error("Profile error:", error);
-    return;
-  }
-
-  if (profile.role !== "admin") {
-    document.querySelector(".admin-only")?.remove();
-  }
-}
-
-await cekLogin();
+window.nextPage = () => {
+  currentPage++;
+  loadObat();
+};
 
 // =======================
-// LOAD DATA OBAT
+// LOAD OBAT
 // =======================
 async function loadObat(keyword = "") {
   const from = (currentPage - 1) * perPage;
@@ -59,19 +45,13 @@ async function loadObat(keyword = "") {
   }
 
   const { data, count, error } = await query;
-
-  if (error) {
-    console.error("Load error:", error);
-    return;
-  }
+  if (error) return console.error(error);
 
   const tbody = document.getElementById("hasil");
   tbody.innerHTML = "";
 
-  if (!data || data.length === 0) {
-    tbody.innerHTML =
-      `<tr><td colspan="5">Data kosong</td></tr>`;
-    renderPagination(0);
+  if (!data.length) {
+    tbody.innerHTML = `<tr><td colspan="5">Data kosong</td></tr>`;
     return;
   }
 
@@ -80,155 +60,73 @@ async function loadObat(keyword = "") {
       <tr>
         <td class="nama">${o.nama_barang}</td>
         <td>${o.satuan || "-"}</td>
-        <td>Rp ${Number(o.harga_jual).toLocaleString("id-ID")}</td>
+        <td>Rp ${o.harga_jual.toLocaleString("id-ID")}</td>
         <td>${o.stok}</td>
         <td>
           <input type="number" id="qty-${o.id}" value="1" min="1" style="width:60px">
           <button onclick="tambahStok(${o.id})">+</button>
           <button onclick="kurangStok(${o.id})">−</button>
-          <button onclick="editHarga(${o.id}, ${o.harga_jual})">💰</button>
+          ${role === "admin" ? `<button onclick="editHarga(${o.id}, ${o.harga_jual})">💰</button>` : ""}
         </td>
       </tr>
     `;
   });
 
-  renderPagination(count);
-}
-
-// =======================
-// PAGINATION UI
-// =======================
-function renderPagination(total) {
-  const totalPage = Math.max(1, Math.ceil(total / perPage));
   document.getElementById("pageInfo").innerText =
-    `Page ${currentPage} / ${totalPage}`;
+    `Page ${currentPage} / ${Math.ceil(count / perPage)}`;
 }
-
-window.nextPage = () => {
-  currentPage++;
-  loadObat();
-};
-
-window.prevPage = () => {
-  if (currentPage > 1) {
-    currentPage--;
-    loadObat();
-  }
-};
 
 // =======================
 // TAMBAH OBAT (ADMIN)
 // =======================
 async function tambahObat() {
-  const nama = document.getElementById("nama").value.trim();
-  const satuan = document.getElementById("satuan").value.trim();
-  const harga = Number(document.getElementById("harga").value);
-  const stok = Number(document.getElementById("stok").value);
+  const nama = document.getElementById("namaInput").value.trim();
+  const satuan = document.getElementById("satuanInput").value.trim();
+  const harga = Number(document.getElementById("hargaInput").value);
+  const stok = Number(document.getElementById("stokInput").value);
 
-  if (!nama || !harga) {
-    alert("Nama & harga wajib diisi");
-    return;
-  }
+  if (!nama || !harga) return alert("Nama & harga wajib");
 
-  const { error } = await supabase
-    .from("obat")
-    .insert({
-      nama_barang: nama,
-      satuan: satuan || null,
-      harga_jual: harga,
-      stok: stok || 0
-    });
+  const { error } = await supabase.from("obat").insert({
+    nama_barang: nama,
+    satuan,
+    harga_jual: harga,
+    stok
+  });
 
-  if (error) {
-    console.error(error);
-    alert("Gagal tambah obat: " + error.message);
-    return;
-  }
-
-  document.getElementById("nama").value = "";
-  document.getElementById("satuan").value = "";
-  document.getElementById("harga").value = "";
-  document.getElementById("stok").value = 0;
+  if (error) return alert(error.message);
 
   loadObat();
-  alert("Obat berhasil ditambahkan");
 }
 
 // =======================
-// EDIT HARGA
-// =======================
-window.editHarga = async (id, hargaLama) => {
-  const hargaBaru = prompt("Harga baru:", hargaLama);
-  if (!hargaBaru) return;
-
-  const { error } = await supabase
-    .from("obat")
-    .update({ harga_jual: Number(hargaBaru) })
-    .eq("id", id);
-
-  if (error) {
-    alert(error.message);
-    return;
-  }
-
-  loadObat();
-};
-
-// =======================
-// TAMBAH / KURANG STOK
+// STOK & HARGA
 // =======================
 window.tambahStok = async id => {
   const qty = Number(document.getElementById(`qty-${id}`).value);
-  if (qty <= 0) return;
-
-  const { data } = await supabase
-    .from("obat")
-    .select("stok")
-    .eq("id", id)
-    .single();
-
-  await supabase
-    .from("obat")
-    .update({ stok: data.stok + qty })
-    .eq("id", id);
-
+  const { data } = await supabase.from("obat").select("stok").eq("id", id).single();
+  await supabase.from("obat").update({ stok: data.stok + qty }).eq("id", id);
   loadObat();
 };
 
 window.kurangStok = async id => {
   const qty = Number(document.getElementById(`qty-${id}`).value);
-  if (qty <= 0) return;
+  const { data } = await supabase.from("obat").select("stok").eq("id", id).single();
+  if (data.stok < qty) return alert("Stok kurang");
+  await supabase.from("obat").update({ stok: data.stok - qty }).eq("id", id);
+  loadObat();
+};
 
-  const { data } = await supabase
-    .from("obat")
-    .select("stok")
-    .eq("id", id)
-    .single();
-
-  if (data.stok < qty) {
-    alert("Stok tidak cukup");
-    return;
-  }
-
-  await supabase
-    .from("obat")
-    .update({ stok: data.stok - qty })
-    .eq("id", id);
-
+window.editHarga = async (id, lama) => {
+  const baru = prompt("Harga baru:", lama);
+  if (!baru) return;
+  await supabase.from("obat").update({ harga_jual: Number(baru) }).eq("id", id);
   loadObat();
 };
 
 // =======================
-// LOGOUT
-// =======================
-window.logout = async () => {
-  await supabase.auth.signOut();
-  window.location.href = "login.html";
-};
-
-// expose ke HTML
 window.loadObat = loadObat;
 window.tambahObat = tambahObat;
+window.logout = logout;
 
-// INIT
 loadObat();
