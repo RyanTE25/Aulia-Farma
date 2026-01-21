@@ -1,5 +1,5 @@
 import { supabase } from "./supabase.js";
-import { getRole, logout } from "./auth.js";
+import { getRole } from "./auth.js";
 
 // =======================
 // ROLE CHECK
@@ -45,12 +45,15 @@ async function loadObat(keyword = "") {
   }
 
   const { data, count, error } = await query;
-  if (error) return console.error(error);
+  if (error) {
+    console.error(error);
+    return;
+  }
 
   const tbody = document.getElementById("hasil");
   tbody.innerHTML = "";
 
-  if (!data.length) {
+  if (!data || data.length === 0) {
     tbody.innerHTML = `<tr><td colspan="5">Data kosong</td></tr>`;
     return;
   }
@@ -58,7 +61,7 @@ async function loadObat(keyword = "") {
   data.forEach(o => {
     tbody.innerHTML += `
       <tr>
-        <td class="nama">${o.nama_barang}</td>
+        <td>${o.nama_barang}</td>
         <td>${o.satuan || "-"}</td>
         <td>Rp ${o.harga_jual.toLocaleString("id-ID")}</td>
         <td>${o.stok}</td>
@@ -77,7 +80,7 @@ async function loadObat(keyword = "") {
 }
 
 // =======================
-// TAMBAH OBAT (ADMIN)
+// TAMBAH OBAT
 // =======================
 async function tambahObat() {
   const nama = document.getElementById("namaInput").value.trim();
@@ -94,7 +97,10 @@ async function tambahObat() {
     stok
   });
 
-  if (error) return alert(error.message);
+  if (error) {
+    alert(error.message);
+    return;
+  }
 
   loadObat();
 }
@@ -125,8 +131,16 @@ window.editHarga = async (id, lama) => {
 };
 
 // =======================
+// LOGOUT (INI FIX UTAMA)
+// =======================
+window.logout = async () => {
+  console.log("LOGOUT CLICKED");
+  await supabase.auth.signOut();
+  location.href = "login.html";
+};
+
+// =======================
 window.loadObat = loadObat;
 window.tambahObat = tambahObat;
-window.logout = logout;
 
 loadObat();
