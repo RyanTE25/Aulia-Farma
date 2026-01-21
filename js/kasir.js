@@ -1,4 +1,7 @@
 import { supabase } from "./supabase.js";
+import { logout } from "./auth.js";
+
+window.logout = logout;
 
 let cart = [];
 
