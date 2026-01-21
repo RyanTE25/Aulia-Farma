@@ -91,3 +91,9 @@ async function simpanTransaksi() {
 
 window.tambahItem = tambahItem;
 window.simpanTransaksi = simpanTransaksi;
+
+window.logout = async () => {
+  await supabase.auth.signOut();
+  location.href = "login.html";
+};
+
